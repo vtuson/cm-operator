@@ -22,3 +22,4 @@ This will make it available in the deployment of chartmuseum as /myrepo/index.ya
 
 ## TODO
 * add support for git credential for private repos
+* add cronjobs to update regularly 
