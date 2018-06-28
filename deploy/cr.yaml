@@ -1,0 +1,4 @@
+apiVersion: "cm.bitnami.com/v1alpha1"
+kind: "Chartmuseum"
+metadata:
+  name: "example"
