@@ -100,7 +100,7 @@ func newCronJob(cr *v1alpha1.Chartmuseum) *v1beta1.CronJob {
 									Name:    "refresh",
 									Image:   "vtuson/busybox",
 									Command: []string{"curl"},
-									Args:    []string{getServiceURL() + name + "/update"},
+									Args:    []string{getServiceURL() + "repo/" + name + "/update"},
 								},
 							},
 						},
