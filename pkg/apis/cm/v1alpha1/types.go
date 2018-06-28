@@ -27,6 +27,7 @@ type ChartmuseumDependency struct {
 }
 type ChartmuseumSpec struct {
 	Git          string                  `json:"git"`
+	Freq         int                     `json:"updateEveryMinutes,omitempty"`
 	Dependencies []ChartmuseumDependency `json:"dependencies,omitempty"`
 }
 type ChartmuseumStatus struct {

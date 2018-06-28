@@ -5,6 +5,11 @@ import (
 	"fmt"
 
 	"github.com/vtuson/cm-operator/pkg/apis/cm/v1alpha1"
+	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/api/batch/v1beta1"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 )
@@ -35,6 +40,9 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 					addDependency(dep.Name, dep.Url)
 				}
 				addRepo(o.GetObjectMeta().GetName(), o.Spec.Git)
+				if err := sdk.Create(newCronJob(o)); err != nil {
+					fmt.Println(err)
+				}
 			} else {
 				//TODO - check for changes
 			}
@@ -42,23 +50,34 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 			fmt.Println("deleting endpoing for", o.GetObjectMeta().GetName())
 			deleteRepo(o.GetObjectMeta().GetName())
 			objects[o.GetObjectMeta().GetName()] = nil
+			if err := sdk.Delete(newCronJob(o)); err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 	return nil
 }
 
-/* newbusyBoxPod demonstrates how to create a busybox pod
-func newbusyBoxPod(cr *v1alpha1.Chartmuseum) *corev1.Pod {
-	labels := map[string]string{
-		"app": "busy-box",
+func newCronJob(cr *v1alpha1.Chartmuseum) *v1beta1.CronJob {
+
+	min := cr.Spec.Freq
+	if min < 10 {
+		min = 10
 	}
-	return &corev1.Pod{
+
+	schedule := fmt.Sprintf("*/%d * * * *", min)
+
+	labels := map[string]string{
+		"app": cr.GetObjectMeta().GetName(),
+	}
+	name := cr.GetObjectMeta().GetName()
+	return &v1beta1.CronJob{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "Pod",
-			APIVersion: "v1",
+			Kind:       "CronJob",
+			APIVersion: "batch/v1beta1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "busy-box",
+			Name:      name,
 			Namespace: cr.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(cr, schema.GroupVersionKind{
@@ -69,15 +88,25 @@ func newbusyBoxPod(cr *v1alpha1.Chartmuseum) *corev1.Pod {
 			},
 			Labels: labels,
 		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
+		Spec: v1beta1.CronJobSpec{
+			Schedule: schedule,
+			JobTemplate: v1beta1.JobTemplateSpec{
+				Spec: batchv1.JobSpec{
+					Template: v1.PodTemplateSpec{
+						Spec: v1.PodSpec{
+							RestartPolicy: "Never",
+							Containers: []v1.Container{
+								v1.Container{
+									Name:    "refresh",
+									Image:   "vtuson/busybox",
+									Command: []string{"curl"},
+									Args:    []string{getServiceURL() + "/" + name + "/update"},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 	}
 }
-*/
