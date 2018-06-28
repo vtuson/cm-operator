@@ -13,6 +13,7 @@ metadata:
   name: "myrepo"
 spec:
   git: "https://github.com/foo/mycharts"
+  updateEveryMinutes: 15
   dependencies:
   - name: bitnami
     url: "https://charts.bitnami.com/bitnami"
@@ -22,4 +23,3 @@ This will make it available in the deployment of chartmuseum as /myrepo/index.ya
 
 ## TODO
 * add support for git credential for private repos
-* add cronjobs to update regularly 
