@@ -21,9 +21,15 @@ type Chartmuseum struct {
 	Status            ChartmuseumStatus `json:"status,omitempty"`
 }
 
+type ChartmuseumDependency struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
 type ChartmuseumSpec struct {
-	// Fill me
+	Git          string                  `json:"git"`
+	Dependencies []ChartmuseumDependency `json:"dependencies,omitempty"`
 }
 type ChartmuseumStatus struct {
-	// Fill me
+	Sync     string `json:"sync"`
+	LastSync string `json:"lastSync"`
 }
